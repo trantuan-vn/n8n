@@ -45,6 +45,28 @@ Tạo API key: **Settings → n8n API → Create an API key**
 | `pnpm trending:open` | In URL import — mở browser khi đã login (dễ nhất) |
 | `pnpm trending:setup` | Login 1 lần, tự tạo API key, lưu `local.env` |
 | `pnpm trending:import` | Import qua API (cần API key hoặc đã chạy setup) |
+| `pnpm trending:ui` | **Giao diện quản lý trực quan** (http://localhost:3847) |
+
+### Giao diện web (khuyên dùng)
+
+```bash
+pnpm trending:ui
+```
+
+Mở http://localhost:3847 — **bắt buộc đăng nhập tài khoản n8n Owner** (`global:owner`).
+
+Giao diện gồm:
+
+- **Login Owner** — xác thực với n8n local, tự tạo API key
+- **Dashboard** thống kê (ứng viên, đã duyệt, đã import…)
+- **Fetch** với topic, số lượng, điểm tối thiểu
+- **Duyệt / Loại** từng workflow bằng nút bấm
+- **Import** workflow đã duyệt vào localhost
+- Tab **Import log** xem kết quả
+
+Port đổi bằng `TRENDING_UI_PORT=4000 pnpm trending:ui`
+
+> Tài khoản member/admin sẽ bị từ chối với thông báo *"không có quyền Owner"*.
 
 ### Ví dụ end-to-end
 
@@ -67,8 +89,8 @@ pnpm trending:approve 4827
 pnpm trending:open
 # → mở URL in ra, n8n tự import template
 
-# Cách B (CLI tự setup API key, chỉ cần email/password 1 lần):
-pnpm trending:setup
+# Cách B (CLI — đăng nhập Owner, tự tạo API key):
+pnpm trending:setup   # phải dùng tài khoản global:owner
 pnpm trending:import
 
 # Cách C (tự tạo API key trong UI):
@@ -88,6 +110,33 @@ pnpm trending:import
 | `N8N_PASSWORD` | *(khi dùng setup)* | Mật khẩu n8n local |
 | `TRENDING_ROWS` | `40` | Số workflow lấy mỗi lần fetch |
 | `TRENDING_MIN_SCORE` | `35` | Ngưỡng điểm tối thiểu (0–100) |
+| `TRENDING_TOPIC` | *(trống)* | Chủ đề lọc khi fetch (xem bên dưới) |
+
+### Lọc theo chủ đề (`topic`)
+
+Không truyền topic → fetch trending toàn bộ (như cũ).
+
+```bash
+# Positional
+pnpm trending:fetch whatsapp
+pnpm trending:fetch -- "Lead Generation"
+
+# Flag
+pnpm trending:fetch -- --topic Sales
+pnpm trending:fetch -- --topic="AI RAG"
+
+# Biến môi trường
+TRENDING_TOPIC=CRM pnpm trending:fetch
+```
+
+Cách map topic:
+
+| Topic nhập | API dùng |
+|------------|----------|
+| Khớp category n8n (vd. `Sales`, `Lead Generation`, `AI RAG`) | `category=...` |
+| Text tự do (vd. `whatsapp`, `seo`) | `search=...` |
+
+Category hợp lệ: `AI`, `AI Chatbot`, `AI RAG`, `Sales`, `Lead Generation`, `CRM`, `Marketing`, `Support Chatbot`, … (xem `TEMPLATE_CATEGORIES` trong script).
 
 Ví dụ lọc chặt hơn:
 
@@ -158,7 +207,6 @@ Sau import, mở workflow trong UI, gắn credentials và test trước khi acti
 
 ## Mở rộng (đề xuất)
 
-- Lọc theo category cố định (Sales, Lead Generation…)
-- UI admin trong editor-ui thay cho CLI
+- ~~UI admin thay cho CLI~~ → `pnpm trending:ui`
 - Cron fetch định kỳ + thông báo workflow mới trending
 - Tích hợp folder/project cụ thể khi import

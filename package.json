@@ -69,6 +69,7 @@
     "trending:setup": "node scripts/trending-workflows.mjs setup",
     "trending:open": "node scripts/trending-workflows.mjs open",
     "trending:report": "node scripts/trending-workflows.mjs report",
+    "trending:ui": "node scripts/trending-workflows-ui.mjs",
     "stop:computer-use": "lsof -ti :7655 | xargs kill 2>/dev/null; echo 'computer-use stopped'"
   },
   "devDependencies": {

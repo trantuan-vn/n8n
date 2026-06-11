@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trending Workflows — Admin</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #242836;
+      --border: #2e3348;
+      --text: #e8eaf2;
+      --muted: #9aa3b8;
+      --accent: #ff6d5a;
+      --accent2: #7c5cff;
+      --ok: #3ecf8e;
+      --warn: #f5a623;
+      --danger: #ff5c7a;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 20px 48px; }
+    header {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 16px; margin-bottom: 24px;
+    }
+    h1 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .stat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+    }
+    .stat b { display: block; font-size: 1.6rem; }
+    .stat span { color: var(--muted); font-size: 0.8rem; }
+    .panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; margin-bottom: 20px;
+    }
+    .panel h2 { margin: 0 0 12px; font-size: 1rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+    label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: var(--muted); }
+    input, select {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      border-radius: 8px; padding: 8px 10px; min-width: 140px;
+    }
+    button {
+      border: none; border-radius: 8px; padding: 8px 14px; font-weight: 600;
+      cursor: pointer; font-size: 0.85rem;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-ok { background: #1e4d38; color: var(--ok); border: 1px solid #2d6b4f; }
+    .btn-danger { background: #4a1f2e; color: var(--danger); border: 1px solid #6b2d42; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab {
+      background: transparent; color: var(--muted); border: 1px solid var(--border);
+      padding: 8px 14px; border-radius: 999px;
+    }
+    .tab.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+    .cards { display: grid; gap: 12px; }
+    .card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+    }
+    .card-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+    .card h3 { margin: 0; font-size: 1rem; line-height: 1.35; }
+    .score {
+      flex-shrink: 0; font-weight: 800; font-size: 1.1rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .meta { color: var(--muted); font-size: 0.82rem; margin: 8px 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .chip {
+      font-size: 0.75rem; padding: 3px 8px; border-radius: 999px;
+      background: #2a3045; color: var(--muted);
+    }
+    .badge {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 6px;
+    }
+    .badge-pending { background: #3a3520; color: var(--warn); }
+    .badge-approved { background: #1e3a2f; color: var(--ok); }
+    .badge-rejected { background: #3a2030; color: var(--danger); }
+    .badge-imported { background: #1e2a4a; color: #7eb8ff; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .actions a {
+      color: #9eb8ff; font-size: 0.82rem; text-decoration: none;
+    }
+    .actions a:hover { text-decoration: underline; }
+    .reasons { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+    .empty { color: var(--muted); text-align: center; padding: 32px; }
+    .toast {
+      position: fixed; bottom: 20px; right: 20px; max-width: 360px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px; box-shadow: 0 8px 30px rgba(0,0,0,.4);
+      display: none; z-index: 100;
+    }
+    .toast.show { display: block; }
+    .toast.err { border-color: var(--danger); }
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      display: none; align-items: center; justify-content: center; z-index: 50;
+    }
+    .modal-bg.show { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; width: min(400px, 92vw);
+    }
+    .modal h3 { margin: 0 0 12px; }
+    .modal .row { margin-top: 12px; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .dot-ok { background: var(--ok); }
+    .dot-off { background: var(--danger); }
+    #loading { display: none; color: var(--muted); font-size: 0.85rem; }
+    #loading.show { display: inline; }
+    #app { display: none; }
+    #app.ready { display: block; }
+    .login-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .login-screen.hidden { display: none; }
+    .login-card {
+      width: min(420px, 100%); background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius); padding: 28px;
+    }
+    .login-card h2 { margin: 0 0 8px; }
+    .login-card p { color: var(--muted); font-size: 0.9rem; margin: 0 0 20px; }
+    .login-card label { display: block; margin-bottom: 12px; }
+    .login-card input { width: 100%; min-width: 0; }
+    .owner-badge {
+      font-size: 0.75rem; color: var(--ok); background: #1e3a2f;
+      padding: 4px 8px; border-radius: 6px; margin-left: 8px;
+    }
+    .user-pill {
+      font-size: 0.85rem; color: var(--muted);
+      background: var(--surface2); border: 1px solid var(--border);
+      padding: 6px 10px; border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-screen" id="login-screen">
+    <div class="login-card">
+      <h2>Đăng nhập n8n Owner</h2>
+      <p>Chỉ tài khoản <strong>global:owner</strong> mới được quản lý trending workflows và import vào localhost.</p>
+      <p class="meta" id="login-local-url"></p>
+      <label>Email owner
+        <input id="login-email" type="email" autocomplete="username" />
+      </label>
+      <label>Password
+        <input id="login-password" type="password" autocomplete="current-password" />
+      </label>
+      <button class="btn-primary" id="btn-login" style="width:100%;margin-top:8px">Đăng nhập</button>
+    </div>
+  </div>
+
+  <div id="app" class="wrap">
+    <header>
+      <div>
+        <h1>Trending Workflows Admin</h1>
+        <div class="sub">Fetch → Duyệt → Import vào localhost n8n</div>
+      </div>
+      <div class="row">
+        <span class="user-pill" id="user-pill"></span>
+        <span id="conn-local"></span>
+        <button class="btn-secondary" id="btn-logout">Đăng xuất</button>
+        <button class="btn-primary" id="btn-import">Import đã duyệt</button>
+      </div>
+    </header>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="panel">
+      <h2>Lấy workflow trending</h2>
+      <div class="row">
+        <label>Chủ đề (topic)
+          <input id="topic" list="categories" placeholder="whatsapp, Sales, AI RAG..." />
+        </label>
+        <datalist id="categories"></datalist>
+        <label>Số lượng
+          <input id="rows" type="number" min="5" max="100" value="40" />
+        </label>
+        <label>Điểm tối thiểu
+          <input id="minScore" type="number" min="0" max="100" value="35" />
+        </label>
+        <button class="btn-primary" id="btn-fetch">Fetch trending</button>
+        <span id="loading">Đang xử lý…</span>
+      </div>
+      <div class="meta" id="fetch-meta"></div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="candidates">Ứng viên</button>
+      <button class="tab" data-tab="approved">Đã duyệt</button>
+      <button class="tab" data-tab="rejected">Đã loại</button>
+      <button class="tab" data-tab="import">Import log</button>
+    </div>
+
+    <div id="content" class="cards"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let state = null;
+    let sessionUser = null;
+    let activeTab = 'candidates';
+
+    const $ = (s) => document.querySelector(s);
+    const toast = (msg, err = false) => {
+      const el = $('#toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (err ? ' err' : '');
+      setTimeout(() => el.classList.remove('show'), 4000);
+    };
+
+    async function api(path, opts = {}) {
+      const res = await fetch(path, {
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+        ...opts,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401 && data.requiresLogin) {
+        showLogin();
+        throw new Error(data.error || 'Yêu cầu đăng nhập Owner');
+      }
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      return data;
+    }
+
+    function showLogin() {
+      sessionUser = null;
+      $('#login-screen').classList.remove('hidden');
+      $('#app').classList.remove('ready');
+    }
+
+    function showApp(user) {
+      sessionUser = user;
+      $('#login-screen').classList.add('hidden');
+      $('#app').classList.add('ready');
+      const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+      $('#user-pill').innerHTML = `${name} <span class="owner-badge">Owner</span>`;
+    }
+
+    function badge(status) {
+      const labels = { pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Đã loại', imported: 'Đã import' };
+      return `<span class="badge badge-${status}">${labels[status] || status}</span>`;
+    }
+
+    function card(w, actions = '') {
+      const cats = (w.categories || []).map((c) => `<span class="chip">${c}</span>`).join('');
+      const reasons = (w.reasons || []).join(' · ');
+      return `
+        <div class="card" data-id="${w.id}">
+          <div class="card-head">
+            <h3>#${w.id} ${w.name}</h3>
+            ${w.monetizationScore != null ? `<div class="score">${w.monetizationScore}</div>` : ''}
+          </div>
+          <div>${badge(w.status || 'pending')}</div>
+          <div class="meta">👁 ${(w.totalViews || 0).toLocaleString()} · @${w.author || '—'}${w.verified ? ' ✓' : ''}</div>
+          <div class="chips">${cats}</div>
+          <p class="meta">${(w.description || '').slice(0, 220)}${(w.description || '').length > 220 ? '…' : ''}</p>
+          ${reasons ? `<div class="reasons">${reasons}</div>` : ''}
+          <div class="actions">
+            <a href="${w.templateUrl || `https://n8n.io/workflows/${w.id}`}" target="_blank">Xem trên n8n.io</a>
+            ${w.importUrl ? `<a href="${w.importUrl}" target="_blank">Mở import URL</a>` : ''}
+            ${w.localUrl ? `<a href="${w.localUrl}" target="_blank">Workflow local</a>` : ''}
+            ${actions}
+          </div>
+        </div>`;
+    }
+
+    function renderStats() {
+      const s = state.stats;
+      $('#stats').innerHTML = [
+        ['Ứng viên', s.candidates],
+        ['Chờ duyệt', s.pending],
+        ['Đã duyệt', s.approved],
+        ['Đã loại', s.rejected],
+        ['Đã import', s.imported],
+      ].map(([l, v]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+    }
+
+    function renderConn() {
+      const c = state.config;
+      const api = c.hasApiKey
+        ? '<span class="status-dot dot-ok"></span>API key'
+        : '<span class="status-dot dot-off"></span>No API key';
+      $('#conn-local').innerHTML = `${api} · <a href="${c.localUrl}" target="_blank" style="color:#9eb8ff">${c.localUrl}</a>`;
+      $('#rows').value = c.rows;
+      $('#minScore').value = c.minScore;
+    }
+
+    function renderFetchMeta() {
+      const m = state.meta;
+      if (!m) { $('#fetch-meta').textContent = 'Chưa fetch. Bấm "Fetch trending" để bắt đầu.'; return; }
+      $('#fetch-meta').textContent =
+        `Lần cuối: ${new Date(m.fetchedAt).toLocaleString('vi')}` +
+        (m.topic ? ` · Topic: ${m.topic}` : '') +
+        ` · ${state.stats.candidates} ứng viên (API total: ${m.totalFromApi})`;
+    }
+
+    function renderContent() {
+      const el = $('#content');
+      if (activeTab === 'candidates') {
+        const list = state.candidates;
+        if (!list.length) { el.innerHTML = '<div class="empty">Chưa có ứng viên. Fetch trending trước.</div>'; return; }
+        el.innerHTML = list.map((w) => {
+          let actions = '';
+          if (w.status === 'pending') {
+            actions = `
+              <button class="btn-ok btn-approve" data-id="${w.id}">Duyệt</button>
+              <button class="btn-danger btn-reject" data-id="${w.id}">Loại</button>`;
+          } else if (w.status === 'approved' || w.status === 'imported') {
+            actions = `<button class="btn-secondary btn-reset" data-id="${w.id}">Reset</button>`;
+          } else {
+            actions = `<button class="btn-secondary btn-reset" data-id="${w.id}">Reset</button>`;
+          }
+          return card(w, actions);
+        }).join('');
+      } else if (activeTab === 'approved') {
+        const list = state.approved;
+        if (!list.length) { el.innerHTML = '<div class="empty">Chưa duyệt workflow nào.</div>'; return; }
+        el.innerHTML = list.map((w) => card(w)).join('');
+      } else if (activeTab === 'rejected') {
+        const list = state.rejected;
+        if (!list.length) { el.innerHTML = '<div class="empty">Chưa loại workflow nào.</div>'; return; }
+        el.innerHTML = list.map((w) => card({ ...w, status: 'rejected', templateUrl: `https://n8n.io/workflows/${w.id}` },
+          `<button class="btn-secondary btn-reset" data-id="${w.id}">Reset</button>`)).join('');
+      } else {
+        const log = state.importLog;
+        if (!log?.results?.length) { el.innerHTML = '<div class="empty">Chưa import lần nào.</div>'; return; }
+        el.innerHTML = log.results.map((r) => `
+          <div class="card">
+            <h3>#${r.templateId} ${r.name || ''}</h3>
+            <div>${badge(r.status === 'ok' ? 'imported' : r.status === 'skipped' ? 'approved' : 'rejected')}</div>
+            <div class="meta">${r.status === 'ok' ? `→ ${r.localId}` : r.error || r.reason || ''}</div>
+            ${r.url ? `<div class="actions"><a href="${r.url}" target="_blank">Mở workflow</a></div>` : ''}
+          </div>`).join('');
+      }
+      bindCardActions();
+    }
+
+    function bindCardActions() {
+      document.querySelectorAll('.btn-approve').forEach((btn) => {
+        btn.onclick = async () => {
+          await api(`/api/approve/${btn.dataset.id}`, { method: 'POST' });
+          await refresh();
+          toast('Đã duyệt #' + btn.dataset.id);
+        };
+      });
+      document.querySelectorAll('.btn-reject').forEach((btn) => {
+        btn.onclick = async () => {
+          await api(`/api/reject/${btn.dataset.id}`, { method: 'POST' });
+          await refresh();
+          toast('Đã loại #' + btn.dataset.id);
+        };
+      });
+      document.querySelectorAll('.btn-reset').forEach((btn) => {
+        btn.onclick = async () => {
+          await api(`/api/reset/${btn.dataset.id}`, { method: 'POST' });
+          await refresh();
+          toast('Đã reset #' + btn.dataset.id);
+        };
+      });
+    }
+
+    function render() {
+      renderStats();
+      renderConn();
+      renderFetchMeta();
+      renderContent();
+      const dl = $('#categories');
+      dl.innerHTML = (state.categories || []).map((c) => `<option value="${c}">`).join('');
+    }
+
+    async function refresh() {
+      state = await api('/api/state');
+      render();
+    }
+
+    function setLoading(on) {
+      $('#loading').classList.toggle('show', on);
+      $('#btn-fetch').disabled = on;
+      $('#btn-import').disabled = on;
+    }
+
+    $('#btn-fetch').onclick = async () => {
+      setLoading(true);
+      try {
+        const data = await api('/api/fetch', {
+          method: 'POST',
+          body: JSON.stringify({
+            topic: $('#topic').value.trim(),
+            rows: Number($('#rows').value),
+            minScore: Number($('#minScore').value),
+          }),
+        });
+        state = data.state;
+        render();
+        toast(`Fetch xong: ${data.count} ứng viên`);
+      } catch (e) { toast(e.message, true); }
+      finally { setLoading(false); }
+    };
+
+    $('#btn-import').onclick = async () => {
+      setLoading(true);
+      try {
+        const data = await api('/api/import', { method: 'POST' });
+        state = data.state;
+        render();
+        const ok = data.log.results.filter((r) => r.status === 'ok').length;
+        toast(`Import xong: ${ok} workflow`);
+      } catch (e) { toast(e.message, true); }
+      finally { setLoading(false); }
+    };
+
+    $('#btn-login').onclick = async () => {
+      $('#btn-login').disabled = true;
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: $('#login-email').value.trim(),
+            password: $('#login-password').value,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 404) {
+          throw new Error('Server cũ — dừng và chạy lại: pnpm trending:ui');
+        }
+        if (!res.ok) throw new Error(data.error || 'Đăng nhập thất bại');
+        state = data.state;
+        showApp(data.user);
+        render();
+        toast('Đăng nhập Owner thành công');
+      } catch (e) { toast(e.message, true); }
+      finally { $('#btn-login').disabled = false; }
+    };
+
+    $('#btn-logout').onclick = async () => {
+      await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+      showLogin();
+      toast('Đã đăng xuất');
+    };
+
+    $('#tabs').onclick = (e) => {
+      const tab = e.target.closest('.tab');
+      if (!tab) return;
+      document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeTab = tab.dataset.tab;
+      renderContent();
+    };
+
+    async function init() {
+      const res = await fetch('/api/session', { credentials: 'same-origin' });
+      const session = await res.json().catch(() => ({}));
+      const n8nUrl = session.localUrl ?? 'http://localhost:5678';
+      $('#login-local-url').textContent = `n8n local: ${n8nUrl}`;
+      if (res.status === 404) {
+        toast('Server cũ — dừng và chạy lại: pnpm trending:ui', true);
+        showLogin();
+        return;
+      }
+      if (session.authenticated && session.user) {
+        showApp(session.user);
+        await refresh();
+      } else {
+        showLogin();
+      }
+    }
+
+    init().catch((e) => toast(e.message, true));
+  </script>
+</body>
+</html>
