@@ -58,6 +58,17 @@
     "webhook": "./packages/cli/bin/n8n webhook",
     "worker": "./packages/cli/bin/n8n worker",
     "dev:computer-use": "pnpm --filter @n8n/computer-use build && node packages/@n8n/computer-use/dist/cli.js serve",
+    "dev:services": "node scripts/dev-services.mjs up",
+    "dev:services:down": "node scripts/dev-services.mjs down",
+    "dev:services:clean": "node scripts/dev-services.mjs clean",
+    "trending:fetch": "node scripts/trending-workflows.mjs fetch",
+    "trending:list": "node scripts/trending-workflows.mjs list",
+    "trending:review": "node scripts/trending-workflows.mjs review",
+    "trending:approve": "node scripts/trending-workflows.mjs approve",
+    "trending:import": "node scripts/trending-workflows.mjs import",
+    "trending:setup": "node scripts/trending-workflows.mjs setup",
+    "trending:open": "node scripts/trending-workflows.mjs open",
+    "trending:report": "node scripts/trending-workflows.mjs report",
     "stop:computer-use": "lsof -ti :7655 | xargs kill 2>/dev/null; echo 'computer-use stopped'"
   },
   "devDependencies": {

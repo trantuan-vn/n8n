@@ -1,0 +1,41 @@
+# Persistent Postgres + Redis for local n8n development.
+# Start:  pnpm dev:services
+# Stop:   pnpm dev:services:down   (keeps data)
+# Reset:  pnpm dev:services:clean  (deletes volumes)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: n8n-dev-postgres
+    restart: unless-stopped
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_DB: n8n_db
+      POSTGRES_USER: n8n_user
+      POSTGRES_PASSWORD: test_password
+    volumes:
+      - n8n-dev-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U n8n_user -d n8n_db']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: n8n-dev-redis
+    restart: unless-stopped
+    ports:
+      - '6380:6379'
+    volumes:
+      - n8n-dev-redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  n8n-dev-postgres-data:
+  n8n-dev-redis-data:
